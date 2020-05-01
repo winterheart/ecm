@@ -102,27 +102,6 @@ void eccedc_generate(ecc_uint8 *sector, int type) {
   }
 }
 
-/***************************************************************************/
-
-unsigned mycounter;
-unsigned mycounter_total;
-
-void resetcounter(unsigned total) {
-  mycounter = 0;
-  mycounter_total = total;
-}
-
-void setcounter(unsigned n) {
-  if ((n >> 20) != (mycounter >> 20)) {
-    unsigned a = (n + 64) / 128;
-    unsigned d = (mycounter_total + 64) / 128;
-    if (!d)
-      d = 1;
-    fprintf(stderr, "Decoding (%02d%%)\r", (100 * a) / d);
-  }
-  mycounter = n;
-}
-
 int unecmify(FILE *in, FILE *out) {
   unsigned checkedc = 0;
   unsigned char sector[2352];
@@ -165,7 +144,7 @@ int unecmify(FILE *in, FILE *out) {
         checkedc = edc_partial_computeblock(checkedc, sector, b);
         fwrite(sector, 1, b, out);
         num -= b;
-        setcounter(ftell(in));
+        setcounter_decode(ftell(in));
       }
     } else {
       while (num--) {
@@ -181,7 +160,7 @@ int unecmify(FILE *in, FILE *out) {
           eccedc_generate(sector, 1);
           checkedc = edc_partial_computeblock(checkedc, sector, 2352);
           fwrite(sector, 2352, 1, out);
-          setcounter(ftell(in));
+          setcounter_decode(ftell(in));
           break;
         case 2:
           sector[0x0F] = 0x02;
@@ -194,7 +173,7 @@ int unecmify(FILE *in, FILE *out) {
           eccedc_generate(sector, 2);
           checkedc = edc_partial_computeblock(checkedc, sector + 0x10, 2336);
           fwrite(sector + 0x10, 2336, 1, out);
-          setcounter(ftell(in));
+          setcounter_decode(ftell(in));
           break;
         case 3:
           sector[0x0F] = 0x02;
@@ -207,7 +186,7 @@ int unecmify(FILE *in, FILE *out) {
           eccedc_generate(sector, 3);
           checkedc = edc_partial_computeblock(checkedc, sector + 0x10, 2336);
           fwrite(sector + 0x10, 2336, 1, out);
-          setcounter(ftell(in));
+          setcounter_decode(ftell(in));
           break;
         }
       }

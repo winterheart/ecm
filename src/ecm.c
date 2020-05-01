@@ -169,43 +169,6 @@ void write_type_count(FILE *out, unsigned type, unsigned count) {
   }
 }
 
-/***************************************************************************/
-
-unsigned mycounter_analyze;
-unsigned mycounter_encode;
-unsigned mycounter_total;
-
-void resetcounter(unsigned total) {
-  mycounter_analyze = 0;
-  mycounter_encode = 0;
-  mycounter_total = total;
-}
-
-void setcounter_analyze(unsigned n) {
-  if ((n >> 20) != (mycounter_analyze >> 20)) {
-    unsigned a = (n + 64) / 128;
-    unsigned e = (mycounter_encode + 64) / 128;
-    unsigned d = (mycounter_total + 64) / 128;
-    if (!d)
-      d = 1;
-    fprintf(stderr, "Analyzing (%02d%%) Encoding (%02d%%)\r", (100 * a) / d,
-            (100 * e) / d);
-  }
-  mycounter_analyze = n;
-}
-
-void setcounter_encode(unsigned n) {
-  if ((n >> 20) != (mycounter_encode >> 20)) {
-    unsigned a = (mycounter_analyze + 64) / 128;
-    unsigned e = (n + 64) / 128;
-    unsigned d = (mycounter_total + 64) / 128;
-    if (!d)
-      d = 1;
-    fprintf(stderr, "Analyzing (%02d%%) Encoding (%02d%%)\r", (100 * a) / d,
-            (100 * e) / d);
-  }
-  mycounter_encode = n;
-}
 
 /***************************************************************************/
 /*

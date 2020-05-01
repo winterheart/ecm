@@ -20,6 +20,7 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <stdio.h>
 #include "unecm.h"
 
 /* Init routine */
@@ -97,4 +98,51 @@ void ecc_computeblock_decode(ecc_uint8 *src, ecc_uint32 major_count,
     dest[major] = ecc_a;
     dest[major + major_count] = ecc_a ^ ecc_b;
   }
+}
+
+/* Reset all counters */
+void resetcounter(unsigned total) {
+  mycounter_analyze = 0;
+  mycounter_encode = 0;
+  mycounter_total = total;
+}
+
+/* Set counters on analyze */
+void setcounter_analyze(unsigned n) {
+  if ((n >> 20) != (mycounter_analyze >> 20)) {
+    unsigned a = (n + 64) / 128;
+    unsigned e = (mycounter_encode + 64) / 128;
+    unsigned d = (mycounter_total + 64) / 128;
+    if (!d)
+      d = 1;
+    fprintf(stderr, "Analyzing (%02d%%) Encoding (%02d%%)\r", (100 * a) / d,
+            (100 * e) / d);
+  }
+  mycounter_analyze = n;
+}
+
+/* Set counters on encode */
+void setcounter_encode(unsigned n) {
+  if ((n >> 20) != (mycounter_encode >> 20)) {
+    unsigned a = (mycounter_analyze + 64) / 128;
+    unsigned e = (n + 64) / 128;
+    unsigned d = (mycounter_total + 64) / 128;
+    if (!d)
+      d = 1;
+    fprintf(stderr, "Analyzing (%02d%%) Encoding (%02d%%)\r", (100 * a) / d,
+            (100 * e) / d);
+  }
+  mycounter_encode = n;
+}
+
+/* Set counters on decode */
+void setcounter_decode(unsigned n) {
+  if ((n >> 20) != (mycounter_analyze >> 20)) {
+    unsigned a = (n + 64) / 128;
+    unsigned d = (mycounter_total + 64) / 128;
+    if (!d)
+      d = 1;
+    fprintf(stderr, "Decoding (%02d%%)\r", (100 * a) / d);
+  }
+  mycounter_analyze = n;
 }
