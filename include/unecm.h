@@ -18,4 +18,7 @@ ecc_uint32 edc_lut[256];
 /* Init routine */
 void eccedc_init(void);
 
+ecc_uint32 edc_partial_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
+                                    ecc_uint16 size);
+
 #endif //ECM_UNECM_H

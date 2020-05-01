@@ -42,25 +42,6 @@ void banner(void) {
 }
 
 /***************************************************************************/
-
-/* Data types */
-#define ecc_uint8 unsigned char
-#define ecc_uint16 unsigned short
-#define ecc_uint32 unsigned
-
-
-/***************************************************************************/
-/*
-** Compute EDC for a block
-*/
-ecc_uint32 edc_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
-                            ecc_uint16 size) {
-  while (size--)
-    edc = (edc >> 8) ^ edc_lut[(edc ^ (*src++)) & 0xFF];
-  return edc;
-}
-
-/***************************************************************************/
 /*
 ** Compute ECC for a block (can do either P or Q)
 */
@@ -159,7 +140,7 @@ int check_type(unsigned char *sector, int canbetype1) {
   }
 
   /* Check EDC */
-  myedc = edc_computeblock(0, sector, 0x808);
+  myedc = edc_partial_computeblock(0, sector, 0x808);
   if (canbetype2)
     if ((sector[0x808] != ((myedc >> 0) & 0xFF)) ||
         (sector[0x809] != ((myedc >> 8) & 0xFF)) ||
@@ -167,7 +148,7 @@ int check_type(unsigned char *sector, int canbetype1) {
         (sector[0x80B] != ((myedc >> 24) & 0xFF))) {
       canbetype2 = 0;
     }
-  myedc = edc_computeblock(myedc, sector + 0x808, 8);
+  myedc = edc_partial_computeblock(myedc, sector + 0x808, 8);
   if (canbetype1)
     if ((sector[0x810] != ((myedc >> 0) & 0xFF)) ||
         (sector[0x811] != ((myedc >> 8) & 0xFF)) ||
@@ -175,7 +156,7 @@ int check_type(unsigned char *sector, int canbetype1) {
         (sector[0x813] != ((myedc >> 24) & 0xFF))) {
       canbetype1 = 0;
     }
-  myedc = edc_computeblock(myedc, sector + 0x810, 0x10C);
+  myedc = edc_partial_computeblock(myedc, sector + 0x810, 0x10C);
   if (canbetype3)
     if ((sector[0x91C] != ((myedc >> 0) & 0xFF)) ||
         (sector[0x91D] != ((myedc >> 8) & 0xFF)) ||
@@ -269,7 +250,7 @@ unsigned in_flush(unsigned edc, unsigned type, unsigned count, FILE *in,
       if (b > 2352)
         b = 2352;
       fread(buf, 1, b, in);
-      edc = edc_computeblock(edc, buf, b);
+      edc = edc_partial_computeblock(edc, buf, b);
       fwrite(buf, 1, b, out);
       count -= b;
       setcounter_encode(ftell(in));
@@ -280,20 +261,20 @@ unsigned in_flush(unsigned edc, unsigned type, unsigned count, FILE *in,
     switch (type) {
     case 1:
       fread(buf, 1, 2352, in);
-      edc = edc_computeblock(edc, buf, 2352);
+      edc = edc_partial_computeblock(edc, buf, 2352);
       fwrite(buf + 0x00C, 1, 0x003, out);
       fwrite(buf + 0x010, 1, 0x800, out);
       setcounter_encode(ftell(in));
       break;
     case 2:
       fread(buf, 1, 2336, in);
-      edc = edc_computeblock(edc, buf, 2336);
+      edc = edc_partial_computeblock(edc, buf, 2336);
       fwrite(buf + 0x004, 1, 0x804, out);
       setcounter_encode(ftell(in));
       break;
     case 3:
       fread(buf, 1, 2336, in);
-      edc = edc_computeblock(edc, buf, 2336);
+      edc = edc_partial_computeblock(edc, buf, 2336);
       fwrite(buf + 0x004, 1, 0x918, out);
       setcounter_encode(ftell(in));
       break;

@@ -35,3 +35,11 @@ void eccedc_init(void) {
     edc_lut[i] = edc;
   }
 }
+
+/* Compute EDC for a block */
+ecc_uint32 edc_partial_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
+                                    ecc_uint16 size) {
+  while (size--)
+    edc = (edc >> 8) ^ edc_lut[(edc ^ (*src++)) & 0xFF];
+  return edc;
+}

@@ -43,23 +43,6 @@ void banner(void) {
 
 /***************************************************************************/
 
-/* Data types */
-#define ecc_uint8 unsigned char
-#define ecc_uint16 unsigned short
-#define ecc_uint32 unsigned
-
-
-/***************************************************************************/
-/*
-** Compute EDC for a block
-*/
-ecc_uint32 edc_partial_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
-                                    ecc_uint16 size) {
-  while (size--)
-    edc = (edc >> 8) ^ edc_lut[(edc ^ (*src++)) & 0xFF];
-  return edc;
-}
-
 void edc_computeblock(const ecc_uint8 *src, ecc_uint16 size, ecc_uint8 *dest) {
   ecc_uint32 edc = edc_partial_computeblock(0, src, size);
   dest[0] = (edc >> 0) & 0xFF;
