@@ -29,10 +29,10 @@
 */
 /***************************************************************************/
 
-#include "unecm.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "unecm.h"
 
 /***************************************************************************/
 
@@ -48,24 +48,6 @@ void banner(void) {
 #define ecc_uint16 unsigned short
 #define ecc_uint32 unsigned
 
-/* LUTs used for computing ECC/EDC */
-static ecc_uint8 ecc_f_lut[256];
-static ecc_uint8 ecc_b_lut[256];
-static ecc_uint32 edc_lut[256];
-
-/* Init routine */
-static void eccedc_init(void) {
-  ecc_uint32 i, j, edc;
-  for (i = 0; i < 256; i++) {
-    j = (i << 1) ^ (i & 0x80 ? 0x11D : 0);
-    ecc_f_lut[i] = j;
-    ecc_b_lut[i ^ j] = i;
-    edc = i;
-    for (j = 0; j < 8; j++)
-      edc = (edc >> 1) ^ (edc & 1 ? 0xD8018001 : 0);
-    edc_lut[i] = edc;
-  }
-}
 
 /***************************************************************************/
 /*
