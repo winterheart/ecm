@@ -51,34 +51,6 @@ void edc_computeblock(const ecc_uint8 *src, ecc_uint16 size, ecc_uint8 *dest) {
   dest[3] = (edc >> 24) & 0xFF;
 }
 
-/***************************************************************************/
-/*
-** Compute ECC for a block (can do either P or Q)
-*/
-static void ecc_computeblock(ecc_uint8 *src, ecc_uint32 major_count,
-                             ecc_uint32 minor_count, ecc_uint32 major_mult,
-                             ecc_uint32 minor_inc, ecc_uint8 *dest) {
-  ecc_uint32 size = major_count * minor_count;
-  ecc_uint32 major, minor;
-  for (major = 0; major < major_count; major++) {
-    ecc_uint32 index = (major >> 1) * major_mult + (major & 1);
-    ecc_uint8 ecc_a = 0;
-    ecc_uint8 ecc_b = 0;
-    for (minor = 0; minor < minor_count; minor++) {
-      ecc_uint8 temp = src[index];
-      index += minor_inc;
-      if (index >= size)
-        index -= size;
-      ecc_a ^= temp;
-      ecc_b ^= temp;
-      ecc_a = ecc_f_lut[ecc_a];
-    }
-    ecc_a = ecc_b_lut[ecc_f_lut[ecc_a] ^ ecc_b];
-    dest[major] = ecc_a;
-    dest[major + major_count] = ecc_a ^ ecc_b;
-  }
-}
-
 /*
 ** Generate ECC P and Q codes for a block
 */
@@ -91,9 +63,9 @@ static void ecc_generate(ecc_uint8 *sector, int zeroaddress) {
       sector[12 + i] = 0;
     }
   /* Compute ECC P code */
-  ecc_computeblock(sector + 0xC, 86, 24, 2, 86, sector + 0x81C);
+  ecc_computeblock_decode(sector + 0xC, 86, 24, 2, 86, sector + 0x81C);
   /* Compute ECC Q code */
-  ecc_computeblock(sector + 0xC, 52, 43, 86, 88, sector + 0x8C8);
+  ecc_computeblock_decode(sector + 0xC, 52, 43, 86, 88, sector + 0x8C8);
   /* Restore the address */
   if (zeroaddress)
     for (i = 0; i < 4; i++)

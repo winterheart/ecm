@@ -43,3 +43,58 @@ ecc_uint32 edc_partial_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
     edc = (edc >> 8) ^ edc_lut[(edc ^ (*src++)) & 0xFF];
   return edc;
 }
+
+/* Compute ECC for a block (can do either P or Q) */
+bool ecc_computeblock_encode(ecc_uint8 *src, ecc_uint32 major_count,
+                             ecc_uint32 minor_count, ecc_uint32 major_mult,
+                             ecc_uint32 minor_inc, ecc_uint8 *dest) {
+  ecc_uint32 size = major_count * minor_count;
+  ecc_uint32 major, minor;
+  for (major = 0; major < major_count; major++) {
+    ecc_uint32 index = (major >> 1) * major_mult + (major & 1);
+    ecc_uint8 ecc_a = 0;
+    ecc_uint8 ecc_b = 0;
+    for (minor = 0; minor < minor_count; minor++) {
+      ecc_uint8 temp = src[index];
+      index += minor_inc;
+      if (index >= size)
+        index -= size;
+      ecc_a ^= temp;
+      ecc_b ^= temp;
+      ecc_a = ecc_f_lut[ecc_a];
+    }
+    ecc_a = ecc_b_lut[ecc_f_lut[ecc_a] ^ ecc_b];
+    if (dest[major] != (ecc_a))
+      return false;
+    dest[major] = ecc_a;
+    if (dest[major + major_count] != (ecc_a ^ ecc_b))
+      return false;
+    dest[major + major_count] = ecc_a ^ ecc_b;
+  }
+  return true;
+}
+
+/* Compute ECC for a block (can do either P or Q) */
+void ecc_computeblock_decode(ecc_uint8 *src, ecc_uint32 major_count,
+                             ecc_uint32 minor_count, ecc_uint32 major_mult,
+                             ecc_uint32 minor_inc, ecc_uint8 *dest) {
+  ecc_uint32 size = major_count * minor_count;
+  ecc_uint32 major, minor;
+  for (major = 0; major < major_count; major++) {
+    ecc_uint32 index = (major >> 1) * major_mult + (major & 1);
+    ecc_uint8 ecc_a = 0;
+    ecc_uint8 ecc_b = 0;
+    for (minor = 0; minor < minor_count; minor++) {
+      ecc_uint8 temp = src[index];
+      index += minor_inc;
+      if (index >= size)
+        index -= size;
+      ecc_a ^= temp;
+      ecc_b ^= temp;
+      ecc_a = ecc_f_lut[ecc_a];
+    }
+    ecc_a = ecc_b_lut[ecc_f_lut[ecc_a] ^ ecc_b];
+    dest[major] = ecc_a;
+    dest[major + major_count] = ecc_a ^ ecc_b;
+  }
+}

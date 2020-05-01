@@ -41,37 +41,6 @@ void banner(void) {
                   "Copyright (C) 2002 Neill Corlett\n\n");
 }
 
-/***************************************************************************/
-/*
-** Compute ECC for a block (can do either P or Q)
-*/
-static int ecc_computeblock(ecc_uint8 *src, ecc_uint32 major_count,
-                            ecc_uint32 minor_count, ecc_uint32 major_mult,
-                            ecc_uint32 minor_inc, ecc_uint8 *dest) {
-  ecc_uint32 size = major_count * minor_count;
-  ecc_uint32 major, minor;
-  for (major = 0; major < major_count; major++) {
-    ecc_uint32 index = (major >> 1) * major_mult + (major & 1);
-    ecc_uint8 ecc_a = 0;
-    ecc_uint8 ecc_b = 0;
-    for (minor = 0; minor < minor_count; minor++) {
-      ecc_uint8 temp = src[index];
-      index += minor_inc;
-      if (index >= size)
-        index -= size;
-      ecc_a ^= temp;
-      ecc_b ^= temp;
-      ecc_a = ecc_f_lut[ecc_a];
-    }
-    ecc_a = ecc_b_lut[ecc_f_lut[ecc_a] ^ ecc_b];
-    if (dest[major] != (ecc_a))
-      return 0;
-    if (dest[major + major_count] != (ecc_a ^ ecc_b))
-      return 0;
-  }
-  return 1;
-}
-
 /*
 ** Generate ECC P and Q codes for a block
 */
@@ -85,14 +54,16 @@ static int ecc_generate(ecc_uint8 *sector, int zeroaddress, ecc_uint8 *dest) {
       sector[12 + i] = 0;
     }
   /* Compute ECC P code */
-  if (!(ecc_computeblock(sector + 0xC, 86, 24, 2, 86, dest + 0x81C - 0x81C))) {
+  if (!(ecc_computeblock_encode(sector + 0xC, 86, 24, 2, 86,
+                                dest + 0x81C - 0x81C))) {
     if (zeroaddress)
       for (i = 0; i < 4; i++)
         sector[12 + i] = address[i];
     return 0;
   }
   /* Compute ECC Q code */
-  r = ecc_computeblock(sector + 0xC, 52, 43, 86, 88, dest + 0x8C8 - 0x81C);
+  r = ecc_computeblock_encode(sector + 0xC, 52, 43, 86, 88,
+                              dest + 0x8C8 - 0x81C);
   /* Restore the address */
   if (zeroaddress)
     for (i = 0; i < 4; i++)
