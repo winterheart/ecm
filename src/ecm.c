@@ -44,9 +44,9 @@ void banner(void) {
 /*
 ** Generate ECC P and Q codes for a block
 */
-static int ecc_generate(ecc_uint8 *sector, int zeroaddress, ecc_uint8 *dest) {
+static int ecc_generate(uint8_t *sector, int zeroaddress, uint8_t *dest) {
   int r;
-  ecc_uint8 address[4], i;
+  uint8_t address[4], i;
   /* Save the address and zero it out */
   if (zeroaddress)
     for (i = 0; i < 4; i++) {
@@ -84,7 +84,7 @@ static int ecc_generate(ecc_uint8 *sector, int zeroaddress, ecc_uint8 *dest) {
 int check_type(unsigned char *sector, int canbetype1) {
   int canbetype2 = 1;
   int canbetype3 = 1;
-  ecc_uint32 myedc;
+  uint32_t myedc;
   /* Check for mode 1 */
   if (canbetype1) {
     if ((sector[0x00] != 0x00) || (sector[0x01] != 0xFF) ||

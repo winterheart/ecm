@@ -43,8 +43,8 @@ void banner(void) {
 
 /***************************************************************************/
 
-void edc_computeblock(const ecc_uint8 *src, ecc_uint16 size, ecc_uint8 *dest) {
-  ecc_uint32 edc = edc_partial_computeblock(0, src, size);
+void edc_computeblock(const uint8_t *src, uint16_t size, uint8_t *dest) {
+  uint32_t edc = edc_partial_computeblock(0, src, size);
   dest[0] = (edc >> 0) & 0xFF;
   dest[1] = (edc >> 8) & 0xFF;
   dest[2] = (edc >> 16) & 0xFF;
@@ -54,8 +54,8 @@ void edc_computeblock(const ecc_uint8 *src, ecc_uint16 size, ecc_uint8 *dest) {
 /*
 ** Generate ECC P and Q codes for a block
 */
-static void ecc_generate(ecc_uint8 *sector, int zeroaddress) {
-  ecc_uint8 address[4], i;
+static void ecc_generate(uint8_t *sector, int zeroaddress) {
+  uint8_t address[4], i;
   /* Save the address and zero it out */
   if (zeroaddress)
     for (i = 0; i < 4; i++) {
@@ -77,8 +77,8 @@ static void ecc_generate(ecc_uint8 *sector, int zeroaddress) {
 ** Generate ECC/EDC information for a sector (must be 2352 = 0x930 bytes)
 ** Returns 0 on success
 */
-void eccedc_generate(ecc_uint8 *sector, int type) {
-  ecc_uint32 i;
+void eccedc_generate(uint8_t *sector, int type) {
+  uint32_t i;
   switch (type) {
   case 1: /* Mode 1 */
     /* Compute EDC */

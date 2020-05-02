@@ -8,15 +8,10 @@
 #define strcasecmp _stricmp
 #endif
 
-/* Data types */
-#define ecc_uint8 uint8_t
-#define ecc_uint16 uint16_t
-#define ecc_uint32 uint32_t
-
 /* LUTs used for computing ECC/EDC */
-ecc_uint8 ecc_f_lut[256];
-ecc_uint8 ecc_b_lut[256];
-ecc_uint32 edc_lut[256];
+uint8_t ecc_f_lut[256];
+uint8_t ecc_b_lut[256];
+uint32_t edc_lut[256];
 
 /* Counters for analyze / encode / decode / total */
 unsigned mycounter_analyze;
@@ -27,17 +22,17 @@ unsigned mycounter_total;
 void eccedc_init(void);
 
 /* Compute EDC for a block */
-ecc_uint32 edc_partial_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
-                                    ecc_uint16 size);
+uint32_t edc_partial_computeblock(uint32_t edc, const uint8_t *src,
+                                  uint16_t size);
 
 /* Compute ECC for a block (can do either P or Q) */
-bool ecc_computeblock_encode(ecc_uint8 *src, ecc_uint32 major_count,
-                      ecc_uint32 minor_count, ecc_uint32 major_mult,
-                      ecc_uint32 minor_inc, ecc_uint8 *dest);
+bool ecc_computeblock_encode(uint8_t *src, uint32_t major_count,
+                             uint32_t minor_count, uint32_t major_mult,
+                             uint32_t minor_inc, uint8_t *dest);
 
-void ecc_computeblock_decode(ecc_uint8 *src, ecc_uint32 major_count,
-                             ecc_uint32 minor_count, ecc_uint32 major_mult,
-                             ecc_uint32 minor_inc, ecc_uint8 *dest);
+void ecc_computeblock_decode(uint8_t *src, uint32_t major_count,
+                             uint32_t minor_count, uint32_t major_mult,
+                             uint32_t minor_inc, uint8_t *dest);
 
 /* Reset all counters */
 void resetcounter(unsigned total);

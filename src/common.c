@@ -20,12 +20,13 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#include <stdint.h>
 #include <stdio.h>
 #include "unecm.h"
 
 /* Init routine */
 void eccedc_init(void) {
-  ecc_uint32 i, j, edc;
+  uint32_t i, j, edc;
   for (i = 0; i < 256; i++) {
     j = (i << 1) ^ (i & 0x80 ? 0x11D : 0);
     ecc_f_lut[i] = j;
@@ -38,25 +39,25 @@ void eccedc_init(void) {
 }
 
 /* Compute EDC for a block */
-ecc_uint32 edc_partial_computeblock(ecc_uint32 edc, const ecc_uint8 *src,
-                                    ecc_uint16 size) {
+uint32_t edc_partial_computeblock(uint32_t edc, const uint8_t *src,
+                                  uint16_t size) {
   while (size--)
     edc = (edc >> 8) ^ edc_lut[(edc ^ (*src++)) & 0xFF];
   return edc;
 }
 
 /* Compute ECC for a block (can do either P or Q) */
-bool ecc_computeblock_encode(ecc_uint8 *src, ecc_uint32 major_count,
-                             ecc_uint32 minor_count, ecc_uint32 major_mult,
-                             ecc_uint32 minor_inc, ecc_uint8 *dest) {
-  ecc_uint32 size = major_count * minor_count;
-  ecc_uint32 major, minor;
+bool ecc_computeblock_encode(uint8_t *src, uint32_t major_count,
+                             uint32_t minor_count, uint32_t major_mult,
+                             uint32_t minor_inc, uint8_t *dest) {
+  uint32_t size = major_count * minor_count;
+  uint32_t major, minor;
   for (major = 0; major < major_count; major++) {
-    ecc_uint32 index = (major >> 1) * major_mult + (major & 1);
-    ecc_uint8 ecc_a = 0;
-    ecc_uint8 ecc_b = 0;
+    uint32_t index = (major >> 1) * major_mult + (major & 1);
+    uint8_t ecc_a = 0;
+    uint8_t ecc_b = 0;
     for (minor = 0; minor < minor_count; minor++) {
-      ecc_uint8 temp = src[index];
+      uint8_t temp = src[index];
       index += minor_inc;
       if (index >= size)
         index -= size;
@@ -76,17 +77,17 @@ bool ecc_computeblock_encode(ecc_uint8 *src, ecc_uint32 major_count,
 }
 
 /* Compute ECC for a block (can do either P or Q) */
-void ecc_computeblock_decode(ecc_uint8 *src, ecc_uint32 major_count,
-                             ecc_uint32 minor_count, ecc_uint32 major_mult,
-                             ecc_uint32 minor_inc, ecc_uint8 *dest) {
-  ecc_uint32 size = major_count * minor_count;
-  ecc_uint32 major, minor;
+void ecc_computeblock_decode(uint8_t *src, uint32_t major_count,
+                             uint32_t minor_count, uint32_t major_mult,
+                             uint32_t minor_inc, uint8_t *dest) {
+  uint32_t size = major_count * minor_count;
+  uint32_t major, minor;
   for (major = 0; major < major_count; major++) {
-    ecc_uint32 index = (major >> 1) * major_mult + (major & 1);
-    ecc_uint8 ecc_a = 0;
-    ecc_uint8 ecc_b = 0;
+    uint32_t index = (major >> 1) * major_mult + (major & 1);
+    uint8_t ecc_a = 0;
+    uint8_t ecc_b = 0;
     for (minor = 0; minor < minor_count; minor++) {
-      ecc_uint8 temp = src[index];
+      uint8_t temp = src[index];
       index += minor_inc;
       if (index >= size)
         index -= size;
