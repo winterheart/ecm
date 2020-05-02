@@ -36,39 +36,6 @@
 
 /***************************************************************************/
 
-
-/*
-** Generate ECC P and Q codes for a block
-*/
-static int ecc_generate(uint8_t *sector, int zeroaddress, uint8_t *dest) {
-  int r;
-  uint8_t address[4], i;
-  /* Save the address and zero it out */
-  if (zeroaddress)
-    for (i = 0; i < 4; i++) {
-      address[i] = sector[12 + i];
-      sector[12 + i] = 0;
-    }
-  /* Compute ECC P code */
-  if (!(ecc_computeblock_encode(sector + 0xC, 86, 24, 2, 86,
-                                dest + 0x81C - 0x81C))) {
-    if (zeroaddress)
-      for (i = 0; i < 4; i++)
-        sector[12 + i] = address[i];
-    return 0;
-  }
-  /* Compute ECC Q code */
-  r = ecc_computeblock_encode(sector + 0xC, 52, 43, 86, 88,
-                              dest + 0x8C8 - 0x81C);
-  /* Restore the address */
-  if (zeroaddress)
-    for (i = 0; i < 4; i++)
-      sector[12 + i] = address[i];
-  return r;
-}
-
-/***************************************************************************/
-
 /*
 ** sector types:
 ** 00 - literal bytes
@@ -133,12 +100,12 @@ int check_type(unsigned char *sector, bool canbetype1) {
     }
   /* Check ECC */
   if (canbetype1) {
-    if (!(ecc_generate(sector, 0, sector + 0x81C))) {
+    if (!(ecc_generate_encode(sector, false, sector + 0x81C))) {
       canbetype1 = false;
     }
   }
   if (canbetype2) {
-    if (!(ecc_generate(sector - 0x10, 1, sector + 0x80C))) {
+    if (!(ecc_generate_encode(sector - 0x10, true, sector + 0x80C))) {
       canbetype2 = false;
     }
   }

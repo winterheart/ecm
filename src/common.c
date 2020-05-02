@@ -101,6 +101,53 @@ void ecc_computeblock_decode(uint8_t *src, uint32_t major_count,
   }
 }
 
+/* Generate ECC P and Q codes for a block */
+int ecc_generate_encode(uint8_t *sector, bool zeroaddress, uint8_t *dest) {
+  int r;
+  uint8_t address[4], i;
+  /* Save the address and zero it out */
+  if (zeroaddress)
+    for (i = 0; i < 4; i++) {
+      address[i] = sector[12 + i];
+      sector[12 + i] = 0;
+    }
+  /* Compute ECC P code */
+  if (!(ecc_computeblock_encode(sector + 0xC, 86, 24, 2, 86,
+                                dest + 0x81C - 0x81C))) {
+    if (zeroaddress)
+      for (i = 0; i < 4; i++)
+        sector[12 + i] = address[i];
+    return 0;
+  }
+  /* Compute ECC Q code */
+  r = ecc_computeblock_encode(sector + 0xC, 52, 43, 86, 88,
+                              dest + 0x8C8 - 0x81C);
+  /* Restore the address */
+  if (zeroaddress)
+    for (i = 0; i < 4; i++)
+      sector[12 + i] = address[i];
+  return r;
+}
+
+/* Generate ECC P and Q codes for a block */
+void ecc_generate_decode(uint8_t *sector, bool zeroaddress) {
+  uint8_t address[4], i;
+  /* Save the address and zero it out */
+  if (zeroaddress)
+    for (i = 0; i < 4; i++) {
+      address[i] = sector[12 + i];
+      sector[12 + i] = 0;
+    }
+  /* Compute ECC P code */
+  ecc_computeblock_decode(sector + 0xC, 86, 24, 2, 86, sector + 0x81C);
+  /* Compute ECC Q code */
+  ecc_computeblock_decode(sector + 0xC, 52, 43, 86, 88, sector + 0x8C8);
+  /* Restore the address */
+  if (zeroaddress)
+    for (i = 0; i < 4; i++)
+      sector[12 + i] = address[i];
+}
+
 /* Reset all counters */
 void resetcounter(unsigned total) {
   mycounter_analyze = 0;

@@ -45,27 +45,6 @@ void edc_computeblock(const uint8_t *src, uint16_t size, uint8_t *dest) {
   dest[3] = (edc >> 24) & 0xFF;
 }
 
-/*
-** Generate ECC P and Q codes for a block
-*/
-static void ecc_generate(uint8_t *sector, int zeroaddress) {
-  uint8_t address[4], i;
-  /* Save the address and zero it out */
-  if (zeroaddress)
-    for (i = 0; i < 4; i++) {
-      address[i] = sector[12 + i];
-      sector[12 + i] = 0;
-    }
-  /* Compute ECC P code */
-  ecc_computeblock_decode(sector + 0xC, 86, 24, 2, 86, sector + 0x81C);
-  /* Compute ECC Q code */
-  ecc_computeblock_decode(sector + 0xC, 52, 43, 86, 88, sector + 0x8C8);
-  /* Restore the address */
-  if (zeroaddress)
-    for (i = 0; i < 4; i++)
-      sector[12 + i] = address[i];
-}
-
 /***************************************************************************/
 /*
 ** Generate ECC/EDC information for a sector (must be 2352 = 0x930 bytes)
@@ -81,13 +60,13 @@ void eccedc_generate(uint8_t *sector, int type) {
     for (i = 0; i < 8; i++)
       sector[0x814 + i] = 0;
     /* Generate ECC P/Q codes */
-    ecc_generate(sector, 0);
+    ecc_generate_decode(sector, false);
     break;
   case 2: /* Mode 2 form 1 */
     /* Compute EDC */
     edc_computeblock(sector + 0x10, 0x808, sector + 0x818);
     /* Generate ECC P/Q codes */
-    ecc_generate(sector, 1);
+    ecc_generate_decode(sector, true);
     break;
   case 3: /* Mode 2 form 2 */
     /* Compute EDC */

@@ -8,8 +8,9 @@
 #define strcasecmp _stricmp
 #endif
 
+// Sector 1 (0x930)
 #define SECTOR_1_SIZE 2352
-// Can be sector 2 and 3
+// Can be sector 2 and 3 (0x920)
 #define SECTOR_2_SIZE 2336
 
 /* LUTs used for computing ECC/EDC */
@@ -37,6 +38,13 @@ bool ecc_computeblock_encode(uint8_t *src, uint32_t major_count,
 void ecc_computeblock_decode(uint8_t *src, uint32_t major_count,
                              uint32_t minor_count, uint32_t major_mult,
                              uint32_t minor_inc, uint8_t *dest);
+
+/* Generate ECC P and Q codes for a block */
+int ecc_generate_encode(uint8_t *sector, bool zeroaddress, uint8_t *dest);
+
+/* Generate ECC P and Q codes for a block */
+void ecc_generate_decode(uint8_t *sector, bool zeroaddress);
+
 
 /* Reset all counters */
 void resetcounter(unsigned total);
