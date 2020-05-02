@@ -36,10 +36,6 @@
 
 /***************************************************************************/
 
-void banner(void) {
-  fprintf(stderr, "ECM - Encoder for Error Code Modeler format v1.0\n"
-                  "Copyright (C) 2002 Neill Corlett\n\n");
-}
 
 /*
 ** Generate ECC P and Q codes for a block
@@ -81,9 +77,9 @@ static int ecc_generate(uint8_t *sector, int zeroaddress, uint8_t *dest) {
 ** 03 - 2336 mode 2 form 2  predict redundant flags, edc
 */
 
-int check_type(unsigned char *sector, int canbetype1) {
-  int canbetype2 = 1;
-  int canbetype3 = 1;
+int check_type(unsigned char *sector, bool canbetype1) {
+  bool canbetype2 = true;
+  bool canbetype3 = true;
   uint32_t myedc;
   /* Check for mode 1 */
   if (canbetype1) {
@@ -98,14 +94,14 @@ int check_type(unsigned char *sector, int canbetype1) {
         (sector[0x817] != 0x00) || (sector[0x818] != 0x00) ||
         (sector[0x819] != 0x00) || (sector[0x81A] != 0x00) ||
         (sector[0x81B] != 0x00)) {
-      canbetype1 = 0;
+      canbetype1 = false;
     }
   }
   /* Check for mode 2 */
   if ((sector[0x0] != sector[0x4]) || (sector[0x1] != sector[0x5]) ||
       (sector[0x2] != sector[0x6]) || (sector[0x3] != sector[0x7])) {
-    canbetype2 = 0;
-    canbetype3 = 0;
+    canbetype2 = false;
+    canbetype3 = false;
     if (!canbetype1)
       return 0;
   }
@@ -117,7 +113,7 @@ int check_type(unsigned char *sector, int canbetype1) {
         (sector[0x809] != ((myedc >> 8) & 0xFF)) ||
         (sector[0x80A] != ((myedc >> 16) & 0xFF)) ||
         (sector[0x80B] != ((myedc >> 24) & 0xFF))) {
-      canbetype2 = 0;
+      canbetype2 = false;
     }
   myedc = edc_partial_computeblock(myedc, sector + 0x808, 8);
   if (canbetype1)
@@ -125,7 +121,7 @@ int check_type(unsigned char *sector, int canbetype1) {
         (sector[0x811] != ((myedc >> 8) & 0xFF)) ||
         (sector[0x812] != ((myedc >> 16) & 0xFF)) ||
         (sector[0x813] != ((myedc >> 24) & 0xFF))) {
-      canbetype1 = 0;
+      canbetype1 = false;
     }
   myedc = edc_partial_computeblock(myedc, sector + 0x810, 0x10C);
   if (canbetype3)
@@ -133,17 +129,17 @@ int check_type(unsigned char *sector, int canbetype1) {
         (sector[0x91D] != ((myedc >> 8) & 0xFF)) ||
         (sector[0x91E] != ((myedc >> 16) & 0xFF)) ||
         (sector[0x91F] != ((myedc >> 24) & 0xFF))) {
-      canbetype3 = 0;
+      canbetype3 = false;
     }
   /* Check ECC */
   if (canbetype1) {
     if (!(ecc_generate(sector, 0, sector + 0x81C))) {
-      canbetype1 = 0;
+      canbetype1 = false;
     }
   }
   if (canbetype2) {
     if (!(ecc_generate(sector - 0x10, 1, sector + 0x80C))) {
-      canbetype2 = 0;
+      canbetype2 = false;
     }
   }
   if (canbetype1)
@@ -176,13 +172,13 @@ void write_type_count(FILE *out, unsigned type, unsigned count) {
 */
 unsigned in_flush(unsigned edc, unsigned type, unsigned count, FILE *in,
                   FILE *out) {
-  unsigned char buf[2352];
+  unsigned char buf[SECTOR_1_SIZE];
   write_type_count(out, type, count);
   if (!type) {
     while (count) {
       unsigned b = count;
-      if (b > 2352)
-        b = 2352;
+      if (b > SECTOR_1_SIZE)
+        b = SECTOR_1_SIZE;
       fread(buf, 1, b, in);
       edc = edc_partial_computeblock(edc, buf, b);
       fwrite(buf, 1, b, out);
@@ -194,21 +190,21 @@ unsigned in_flush(unsigned edc, unsigned type, unsigned count, FILE *in,
   while (count--) {
     switch (type) {
     case 1:
-      fread(buf, 1, 2352, in);
-      edc = edc_partial_computeblock(edc, buf, 2352);
+      fread(buf, 1, SECTOR_1_SIZE, in);
+      edc = edc_partial_computeblock(edc, buf, SECTOR_1_SIZE);
       fwrite(buf + 0x00C, 1, 0x003, out);
       fwrite(buf + 0x010, 1, 0x800, out);
       setcounter_encode(ftell(in));
       break;
     case 2:
-      fread(buf, 1, 2336, in);
-      edc = edc_partial_computeblock(edc, buf, 2336);
+      fread(buf, 1, SECTOR_2_SIZE, in);
+      edc = edc_partial_computeblock(edc, buf, SECTOR_2_SIZE);
       fwrite(buf + 0x004, 1, 0x804, out);
       setcounter_encode(ftell(in));
       break;
     case 3:
-      fread(buf, 1, 2336, in);
-      edc = edc_partial_computeblock(edc, buf, 2336);
+      fread(buf, 1, SECTOR_2_SIZE, in);
+      edc = edc_partial_computeblock(edc, buf, SECTOR_2_SIZE);
       fwrite(buf + 0x004, 1, 0x918, out);
       setcounter_encode(ftell(in));
       break;
@@ -219,9 +215,8 @@ unsigned in_flush(unsigned edc, unsigned type, unsigned count, FILE *in,
 
 /***************************************************************************/
 
-unsigned char inputqueue[1048576 + 4];
-
 int ecmify(FILE *in, FILE *out) {
+  unsigned char inputqueue[1048576 + 4];
   unsigned inedc = 0;
   int curtype = -1;
   int curtypecount = 0;
@@ -246,7 +241,7 @@ int ecmify(FILE *in, FILE *out) {
   fputc('M', out);
   fputc(0x00, out);
   for (;;) {
-    if ((dataavail < 2352) && (dataavail < (intotallength - inbufferpos))) {
+    if ((dataavail < SECTOR_1_SIZE) && (dataavail < (intotallength - inbufferpos))) {
       int willread = intotallength - inbufferpos;
       if (willread > ((sizeof(inputqueue) - 4) - dataavail))
         willread = (sizeof(inputqueue) - 4) - dataavail;
@@ -264,10 +259,10 @@ int ecmify(FILE *in, FILE *out) {
     }
     if (dataavail <= 0)
       break;
-    if (dataavail < 2336) {
+    if (dataavail < SECTOR_2_SIZE) {
       detecttype = 0;
     } else {
-      detecttype = check_type(inputqueue + 4 + inqueuestart, dataavail >= 2352);
+      detecttype = check_type(inputqueue + 4 + inqueuestart, false);
     }
     if (detecttype != curtype) {
       if (curtypecount) {
@@ -288,19 +283,15 @@ int ecmify(FILE *in, FILE *out) {
       dataavail -= 1;
       break;
     case 1:
-      incheckpos += 2352;
-      inqueuestart += 2352;
-      dataavail -= 2352;
+      incheckpos += SECTOR_1_SIZE;
+      inqueuestart += SECTOR_1_SIZE;
+      dataavail -= SECTOR_1_SIZE;
       break;
     case 2:
-      incheckpos += 2336;
-      inqueuestart += 2336;
-      dataavail -= 2336;
-      break;
     case 3:
-      incheckpos += 2336;
-      inqueuestart += 2336;
-      dataavail -= 2336;
+      incheckpos += SECTOR_2_SIZE;
+      inqueuestart += SECTOR_2_SIZE;
+      dataavail -= SECTOR_2_SIZE;
       break;
     }
   }
@@ -332,7 +323,10 @@ int main(int argc, char **argv) {
   FILE *fin, *fout;
   char *infilename;
   char *outfilename;
-  banner();
+
+  fprintf(stderr, "ECM - Encoder for Error Code Modeler format v1.0\n"
+                  "Copyright (C) 2002 Neill Corlett\n\n");
+
   /*
   ** Initialize the ECC/EDC tables
   */

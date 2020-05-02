@@ -34,12 +34,6 @@
 #include <string.h>
 #include "unecm.h"
 
-/***************************************************************************/
-
-void banner(void) {
-  fprintf(stderr, "UNECM - Decoder for Error Code Modeler format v1.0\n"
-                  "Copyright (C) 2002 Neill Corlett\n\n");
-}
 
 /***************************************************************************/
 
@@ -104,7 +98,7 @@ void eccedc_generate(uint8_t *sector, int type) {
 
 int unecmify(FILE *in, FILE *out) {
   unsigned checkedc = 0;
-  unsigned char sector[2352];
+  unsigned char sector[SECTOR_1_SIZE];
   unsigned type;
   unsigned num;
   fseek(in, 0, SEEK_END);
@@ -137,8 +131,8 @@ int unecmify(FILE *in, FILE *out) {
     if (!type) {
       while (num) {
         int b = num;
-        if (b > 2352)
-          b = 2352;
+        if (b > SECTOR_1_SIZE)
+          b = SECTOR_1_SIZE;
         if (fread(sector, 1, b, in) != b)
           goto uneof;
         checkedc = edc_partial_computeblock(checkedc, sector, b);
@@ -158,8 +152,8 @@ int unecmify(FILE *in, FILE *out) {
           if (fread(sector + 0x010, 1, 0x800, in) != 0x800)
             goto uneof;
           eccedc_generate(sector, 1);
-          checkedc = edc_partial_computeblock(checkedc, sector, 2352);
-          fwrite(sector, 2352, 1, out);
+          checkedc = edc_partial_computeblock(checkedc, sector, SECTOR_1_SIZE);
+          fwrite(sector, SECTOR_1_SIZE, 1, out);
           setcounter_decode(ftell(in));
           break;
         case 2:
@@ -171,8 +165,8 @@ int unecmify(FILE *in, FILE *out) {
           sector[0x12] = sector[0x16];
           sector[0x13] = sector[0x17];
           eccedc_generate(sector, 2);
-          checkedc = edc_partial_computeblock(checkedc, sector + 0x10, 2336);
-          fwrite(sector + 0x10, 2336, 1, out);
+          checkedc = edc_partial_computeblock(checkedc, sector + 0x10, SECTOR_2_SIZE);
+          fwrite(sector + 0x10, SECTOR_2_SIZE, 1, out);
           setcounter_decode(ftell(in));
           break;
         case 3:
@@ -184,8 +178,8 @@ int unecmify(FILE *in, FILE *out) {
           sector[0x12] = sector[0x16];
           sector[0x13] = sector[0x17];
           eccedc_generate(sector, 3);
-          checkedc = edc_partial_computeblock(checkedc, sector + 0x10, 2336);
-          fwrite(sector + 0x10, 2336, 1, out);
+          checkedc = edc_partial_computeblock(checkedc, sector + 0x10, SECTOR_2_SIZE);
+          fwrite(sector + 0x10, SECTOR_2_SIZE, 1, out);
           setcounter_decode(ftell(in));
           break;
         }
@@ -220,7 +214,9 @@ int main(int argc, char **argv) {
   char *outfilename;
   char *cuefilename;
   char createcue = 0;
-  banner();
+
+  fprintf(stderr, "UNECM - Decoder for Error Code Modeler format v1.0\n"
+                  "Copyright (C) 2002 Neill Corlett\n\n");
   /*
   ** Initialize the ECC/EDC tables
   */

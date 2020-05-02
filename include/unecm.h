@@ -8,6 +8,10 @@
 #define strcasecmp _stricmp
 #endif
 
+#define SECTOR_1_SIZE 2352
+// Can be sector 2 and 3
+#define SECTOR_2_SIZE 2336
+
 /* LUTs used for computing ECC/EDC */
 uint8_t ecc_f_lut[256];
 uint8_t ecc_b_lut[256];
