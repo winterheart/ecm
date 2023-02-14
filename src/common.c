@@ -3,7 +3,7 @@
 ** ECM - Encoder for ECM (Error Code Modeler) format.
 ** Version 1.0
 ** Copyright (C) 2002 Neill Corlett
-** Copyright (c) 2020 Azamat H. Hackimov
+** Copyright (c) 2020-2023 Azamat H. Hackimov
 **
 ** This program is free software; you can redistribute it and/or
 ** modify it under the terms of the GNU General Public License
@@ -23,6 +23,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "unecm.h"
+
+/* LUTs used for computing ECC/EDC */
+uint8_t ecc_f_lut[256];
+uint8_t ecc_b_lut[256];
+uint32_t edc_lut[256];
+
+/* Counters for analyze / encode / decode / total */
+unsigned mycounter_analyze;
+unsigned mycounter_encode;
+unsigned mycounter_total;
 
 /* Init routine */
 void eccedc_init(void) {

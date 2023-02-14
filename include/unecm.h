@@ -1,3 +1,25 @@
+/***************************************************************************/
+/*
+** ECM - Encoder for ECM (Error Code Modeler) format.
+** Version 1.0
+** Copyright (C) 2002 Neill Corlett
+** Copyright (c) 2020-2023 Azamat H. Hackimov
+**
+** This program is free software; you can redistribute it and/or
+** modify it under the terms of the GNU General Public License
+** as published by the Free Software Foundation; either version 2
+** of the License, or (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program; if not, write to the Free Software
+** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+
 #ifndef ECM_UNECM_H
 #define ECM_UNECM_H
 
@@ -12,16 +34,6 @@
 #define SECTOR_1_SIZE 2352
 // Can be sector 2 and 3 (0x920)
 #define SECTOR_2_SIZE 2336
-
-/* LUTs used for computing ECC/EDC */
-uint8_t ecc_f_lut[256];
-uint8_t ecc_b_lut[256];
-uint32_t edc_lut[256];
-
-/* Counters for analyze / encode / decode / total */
-unsigned mycounter_analyze;
-unsigned mycounter_encode;
-unsigned mycounter_total;
 
 /* Init routine */
 void eccedc_init(void);
